@@ -1,0 +1,10 @@
+{
+  "id": "03213771",
+  "company": "DANNY COM ALS SRL",
+  "brand": "Danny Com Als",
+  "status": "activ",
+  "location": ["Dobroești"],
+  "website": [],
+  "career": ["https://mediere.anofm.ro/app/module/mediere/jobs"],
+  "scraperFile": "https://github.com/peviitor-scrapers/danny-com-als-srl-python-scraper/actions/workflows/job-seeker-ro-spider.yml"
+}
