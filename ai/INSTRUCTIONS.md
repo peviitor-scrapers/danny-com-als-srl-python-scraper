@@ -4,13 +4,17 @@
 
 This scraper extracts job listings for **DANNY COM ALS SRL** (CIF `3213771`,
 stored as `03213771`)
-from **ANOFM** (`https://mediere.anofm.ro`) and publishes them to
-peviitor.ro via the v1 API (`https://api.peviitor.ro/v1`).
+from **ANOFM** (`https://mediere.anofm.ro`) and **jobRapid**
+(`https://www.jobrapid.ro`), and publishes them to peviitor.ro via the v1 API
+(`https://api.peviitor.ro/v1`).
 
-The company has no own careers board, so ANOFM is the only job source.
+The company has no own careers board, so ANOFM is the primary job source and
+jobRapid is a secondary source (each posting keeps its own URL).
 
-Target: `https://mediere.anofm.ro/api/entity/vw_public_job_posting`
-(POST, filtered by `employer_tax_code=3213771`).
+Targets:
+- `https://mediere.anofm.ro/api/entity/vw_public_job_posting` (POST, filtered
+  by `employer_tax_code=3213771`)
+- `https://www.jobrapid.ro/angajare` (POST, filtered by company name)
 
 ## Model Schemas
 
@@ -56,13 +60,13 @@ When working on this scraper:
 4. **Validate with Peviitor** — verify company exists in peviitor
 5. **Check existing jobs** — query peviitor v1 API by CIF to see what jobs exist
 6. **Check company status** — if ANAF status = INACTIVE → DELETE existing jobs and STOP
-7. **Scrape new jobs** — query the ANOFM public job posting API by `employer_tax_code`
+7. **Scrape new jobs** — query ANOFM by `employer_tax_code` and jobRapid by company name
 8. **Transform for API** — validate and fix job data:
    - location: only Romanian cities allowed (fallback `["România"]`)
    - workmode: `remote` / `on-site` / `hybrid`
    - company: uppercase
 9. **Upsert to API** — import/update jobs via peviitor v1 API
-10. **Verify URLs** — check existing ANOFM job URLs still work, delete stale ones
+10. **Verify URLs** — check existing ANOFM/jobRapid job URLs still work, delete stale ones
 
 ## Running the Scraper
 
@@ -72,8 +76,9 @@ python3 -m scraper.index
 ```
 
 > **Important**: Stale deletion is scoped to the ANOFM job URL prefix
-> (`https://mediere.anofm.ro/app/module/mediere/job/`) only, so jobs
-> published by other scrapers under the shared CIF are preserved.
+> (`https://mediere.anofm.ro/app/module/mediere/job/`) and the jobRapid prefix
+> (`https://www.jobrapid.ro/locuri-de-munca/`) only, so jobs published by
+> other scrapers under the shared CIF are preserved.
 
 ## Full Workflow (automatic)
 
@@ -82,11 +87,11 @@ When running `python3 -m scraper.index`, the following steps happen automaticall
 1. **Check existing jobs count** — query peviitor v1 API by CIF (read-only)
 2. **Validate company via ANAF** — check company exists and is active
 3. **Upsert company core** — with `scraperFile` pointing to our workflow
-4. **Scrape jobs** — query the ANOFM API by CIF
+4. **Scrape jobs** — query the ANOFM API by CIF and jobRapid by company name
 5. **Transform for API** — fix locations (only Romanian cities), normalize workmode
 6. **Generate files** — `scraper/jobs.json`, `docs/jobs.md`, `docs/company.json`
 7. **Upsert to API** — add/update jobs (API handles duplicates by URL)
-8. **Delete stale jobs** — remove ANOFM jobs no longer published
+8. **Delete stale jobs** — remove ANOFM/jobRapid jobs no longer published
 9. **Show Summary** — log job counts
 
 ## Workflow Flowchart
@@ -134,9 +139,10 @@ See `ai/files.md` for the full file map. Key files:
 |------|------|
 | `scraper/config/company.json` | **Single source of truth** for company identity (CIF, brand, URLs, `scraperFile`) |
 | `scraper/config/scraper.json` | API config — `apiBase`, `apiPath`, `jobDetailsPrefix` |
-| `scraper/index.py` | Main entry point — validate company → scrape ANOFM → transform → upsert → delete stale → generate `docs/jobs.md` |
+| `scraper/index.py` | Main entry point — validate company → scrape ANOFM + jobRapid → transform → upsert → delete stale → generate `docs/jobs.md` |
 | `scraper/api.py` | Peviitor v1 API client — query/upsert/delete jobs + company |
 | `scraper/anaf.py` | Company validation + `search_anofm` — CUIScan + demoanaf + cache fallback |
+| `scraper/jobrapid.py` | Secondary source — `search_jobrapid` (search + JobPosting JSON-LD parsing) |
 | `scraper/job_validator.py` | Shared URL validation primitives (head/content/browser) |
 | `scraper/validate_jobs.py` | CLI deep validator (`--mode head|content|browser`, `--delete`) |
 | `scraper/markdown_generator.py` | Generates `docs/jobs.md` |
@@ -149,6 +155,8 @@ See `ai/files.md` for the full file map. Key files:
 
 - **ANOFM search**: `https://mediere.anofm.ro/api/entity/vw_public_job_posting` — POST by `employer_tax_code`
 - **ANOFM job URL**: `https://mediere.anofm.ro/app/module/mediere/job/<id>`
+- **jobRapid search**: `https://www.jobrapid.ro/angajare` — POST by `key` (company name)
+- **jobRapid job URL**: `https://www.jobrapid.ro/locuri-de-munca/<slug>-<id>.html`
 - **CUIScan**: `https://cuiscan.ro/api.php?action=company&cui=CIF` — company details fallback
 - **DemoANAF**: `https://demoanaf.ro/api/company/:cui` — company details fallback
 - **CUIFirma search**: `https://www.cuifirma.ro/api/search?q=BRAND` — search fallback

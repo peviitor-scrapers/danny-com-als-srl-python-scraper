@@ -26,6 +26,15 @@ python3 -m pytest tests/e2e
 
 Expect: `>= 1` jobs scraped from ANOFM, unique URLs, titles present.
 
+## Live — jobRapid
+
+```bash
+python3 -c "from scraper.jobrapid import search_jobrapid; print(search_jobrapid('Danny Com Als'))"
+```
+
+Expect: `>= 1` job, URL starting with
+`https://www.jobrapid.ro/locuri-de-munca/`, title and location present.
+
 ## Live — peviitor SOLR
 
 ```bash
@@ -34,7 +43,8 @@ curl "https://api.peviitor.ro/v1/scraper/jobs/?cif=03213771&rows=500"
 
 Expect: `success: true`. Note CIF `03213771` is shared with other peviitor
 scrapers (jobviewtrack, ejobs, olx, multijobs, targuldecariere), so the
-total count includes their jobs; confirm the scraped ANOFM job URLs are present.
+total count includes their jobs; confirm the scraped ANOFM and jobRapid job
+URLs are present.
 
 ## Full pipeline
 

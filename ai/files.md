@@ -4,9 +4,10 @@
 
 | File | Description |
 |------|-------------|
-| `scraper/index.py` | Main scraper - full workflow: validate company (ANAF) → query ANOFM by CIF → transform → upsert to peviitor v1 API → delete stale → generate `docs/jobs.md`. Entry point: `python3 -m scraper.index` |
+| `scraper/index.py` | Main scraper - full workflow: validate company (ANAF) → query ANOFM by CIF + jobRapid by name → transform → upsert to peviitor v1 API → delete stale → generate `docs/jobs.md`. Entry point: `python3 -m scraper.index` |
 | `scraper/api.py` | Peviitor v1 API client - `query_solr`, `upsert_company`, `upsert_jobs`, `delete_jobs_by_cif`, `delete_job_by_url` |
 | `scraper/anaf.py` | Multi-source company data module - CUIScan + demoanaf (details), demoanaf + cuifirma (search), ANAF cache fallback (`scraper/anaf_cache.json`), plus `search_anofm` (job postings by CIF) |
+| `scraper/jobrapid.py` | jobRapid secondary source - `search_jobrapid` searches by company name and parses JobPosting JSON-LD from each detail page |
 | `scraper/job_validator.py` | Shared validation primitives - `validate_by_head`, `validate_by_content`, `validate_by_browser`, `DEFAULT_EXPIRED_KEYWORDS`. Content check strips `<script>`/`<style>` |
 | `scraper/validate_jobs.py` | CLI job URL validator (`--mode head|content|browser`, `--dry-run`, `--delete`). Entry point: `python3 -m scraper.validate_jobs` |
 | `scraper/markdown_generator.py` | Generates `docs/jobs.md` and `docs/company.json` |

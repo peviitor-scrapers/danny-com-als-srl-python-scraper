@@ -1,4 +1,4 @@
-"""Unit tests for the ANOFM-only index pipeline."""
+"""Unit tests for the index pipeline (ANOFM + jobRapid)."""
 
 import json
 
@@ -27,6 +27,17 @@ def test_map_to_job_model_without_location():
     assert "location" not in job
 
 
+def test_map_to_job_model_preserves_salary():
+    raw = {
+        "url": "https://www.jobrapid.ro/locuri-de-munca/lucrator-comercial-in-pantelimon-1733087.html",
+        "title": "Lucrator Comercial",
+        "location": ["Pantelimon"],
+        "salary": "4350-4350 RON",
+    }
+    job = index.map_to_job_model(raw, "3213771", company_name="DANNY COM ALS SRL")
+    assert job["salary"] == "4350-4350 RON"
+
+
 def test_transform_jobs_for_solr_uppercases_company():
     jobs = [{"url": "https://x/job", "title": "Test", "location": ["Cluj-Napoca"]}]
     transformed = index.transform_jobs_for_solr({"company": "Danny Com Als SRL", "jobs": jobs})
@@ -52,6 +63,13 @@ def test_main_writes_summary(tmp_path, monkeypatch):
          "title": f"Job {i}", "location": ["Dobroești"]}
         for i in range(3)
     ]
+    fake_jobrapid = [{
+        "url": "https://www.jobrapid.ro/locuri-de-munca/lucrator-comercial-in-pantelimon-1733087.html",
+        "title": "Lucrator Comercial",
+        "location": ["Pantelimon"],
+        "salary": "4350-4350 RON",
+        "date": "2026-11-14T07:59:12Z",
+    }]
     monkeypatch.setattr(index, "query_solr", lambda cif: {"numFound": 0, "docs": []})
     monkeypatch.setattr(index, "upsert_jobs", lambda jobs: None)
     monkeypatch.setattr(index, "delete_job_by_url", lambda url: None)
@@ -60,6 +78,7 @@ def test_main_writes_summary(tmp_path, monkeypatch):
         "company": "DANNY COM ALS SRL", "cif": "03213771", "status": "active",
         "address": "DOBROEȘTI"})
     monkeypatch.setattr(index, "search_anofm", lambda cif: fake_jobs)
+    monkeypatch.setattr(index, "search_jobrapid", lambda name: fake_jobrapid)
     monkeypatch.setattr(index.time, "sleep", lambda s: None)
 
     index.main(root=tmp_path)
@@ -67,8 +86,12 @@ def test_main_writes_summary(tmp_path, monkeypatch):
     out = tmp_path / "scraper" / "jobs.json"
     assert out.exists()
     data = json.loads(out.read_text(encoding="utf-8"))
-    assert len(data["jobs"]) == 3
+    assert len(data["jobs"]) == 4
     assert data["company"] == "DANNY COM ALS SRL"
+    assert data["source"] == "mediere.anofm.ro, jobrapid.ro"
+    urls = {job["url"] for job in data["jobs"]}
+    assert fake_jobrapid[0]["url"] in urls
+    assert any(job.get("salary") == "4350-4350 RON" for job in data["jobs"])
     assert (tmp_path / "docs" / "jobs.md").exists()
 
 

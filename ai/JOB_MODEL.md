@@ -32,9 +32,12 @@ Standardized job document published to peviitor SOLR.
 
 ## Location rules
 
-- Location comes from ANOFM (`address_locality_name`).
+- Location comes from ANOFM (`address_locality_name`) or jobRapid
+  (`jobLocation.address.addressLocality`).
 - If no location is returned, it falls back to `["România"]`.
 - The scraper does not geocode or filter non-Romanian cities.
+- jobRapid postings also provide `salary` (e.g. `"4350-4350 RON"`) and
+  `date` (`datePosted` converted to UTC); ANOFM postings do not expose salary.
 
 ## Workmode rules
 

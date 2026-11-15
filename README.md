@@ -9,7 +9,7 @@
 
 # job_seeker_ro_spider — DANNY COM ALS SRL Scraper
 
-**job_seeker_ro_spider** — a scraper for DANNY COM ALS SRL jobs in Romania. It collects the announcements published by DANNY COM ALS SRL on [ANOFM](https://mediere.anofm.ro/app/module/mediere/jobs) and publishes them to [peviitor.ro](https://peviitor.ro) through the Peviitor API.
+**job_seeker_ro_spider** — a scraper for DANNY COM ALS SRL jobs in Romania. It collects the announcements published by DANNY COM ALS SRL on [ANOFM](https://mediere.anofm.ro/app/module/mediere/jobs) and [jobRapid](https://www.jobrapid.ro/companie/danny-com-als-375307.html), and publishes them to [peviitor.ro](https://peviitor.ro) through the Peviitor API.
 
 > **🌱 Derived scraper.** This repository is derived from [dormoara-srl-python-scraper](https://github.com/peviitor-scrapers/dormoara-srl-python-scraper), the ANOFM-only reference implementation for Python scrapers in the peviitor.ro ecosystem.
 
@@ -20,6 +20,7 @@ The project automates the daily collection of DANNY COM ALS jobs in Romania, kee
 ## Features
 
 - Extracts jobs from ANOFM (`mediere.anofm.ro`) by company CIF
+- Extracts jobs from jobRapid (`jobrapid.ro`) by company name
 - Validates the company via ANAF (CUI, active/inactive status, full address) with CUIScan fallback
 - **ANAF cache** — does not hit the APIs on every scrape
 - **Stale cache / config fallback** when ANAF is unavailable

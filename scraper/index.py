@@ -15,11 +15,14 @@ from .anaf import search_anofm
 from .api import delete_job_by_url, delete_jobs_by_cif, query_solr, upsert_company, upsert_jobs
 from .company import validate_and_get_company
 from .config import company_config, scraper_config
+from .jobrapid import search_jobrapid
 from .markdown_generator import generate_jobs_markdown
 
 COMPANY_CIF = str(company_config["id"])
 ANOFM_CIF = str(int(COMPANY_CIF))
 JOB_DETAILS_PREFIX = scraper_config["jobDetailsPrefix"]
+JOBRAPID_PREFIX = "https://www.jobrapid.ro/locuri-de-munca/"
+JOBRAPID_COMPANY = company_config.get("brand") or company_config["company"]
 COMPANY_NAME = None
 
 
@@ -35,6 +38,8 @@ def map_to_job_model(raw_job, cif, company_name=None):
     }
     if raw_job.get("location"):
         job["location"] = raw_job["location"]
+    if raw_job.get("salary"):
+        job["salary"] = raw_job["salary"]
     return job
 
 
@@ -67,8 +72,9 @@ def main(root=None):
     existing_result = query_solr(COMPANY_CIF)
     existing_count = existing_result["numFound"]
     existing_urls = {doc.get("url") for doc in existing_result["docs"]
-                     if doc.get("url") and doc["url"].startswith(JOB_DETAILS_PREFIX)}
-    print(f"Found {existing_count} existing jobs in SOLR ({len(existing_urls)} from ANOFM)")
+                     if doc.get("url") and (doc["url"].startswith(JOB_DETAILS_PREFIX)
+                                            or doc["url"].startswith(JOBRAPID_PREFIX))}
+    print(f"Found {existing_count} existing jobs in SOLR ({len(existing_urls)} from tracked sources)")
 
     print("=== Step 2: Validate company via ANAF ===")
     validated = _validated_company()
@@ -98,13 +104,16 @@ def main(root=None):
     except Exception as err:
         print(f"Note: Could not upsert company: {err}")
 
-    print("=== Step 3: Scrape DANNY COM ALS SRL jobs from ANOFM ===")
-    raw_jobs = search_anofm(ANOFM_CIF)
-    print(f"Jobs scraped from ANOFM: {len(raw_jobs)}")
+    print("=== Step 3: Scrape DANNY COM ALS SRL jobs from ANOFM and jobRapid ===")
+    anofm_jobs = search_anofm(ANOFM_CIF)
+    jobrapid_jobs = search_jobrapid(JOBRAPID_COMPANY)
+    print(f"Jobs scraped from ANOFM: {len(anofm_jobs)}")
+    print(f"Jobs scraped from jobRapid: {len(jobrapid_jobs)}")
 
+    raw_jobs = anofm_jobs + jobrapid_jobs
     jobs = [map_to_job_model(job, company_cif) for job in raw_jobs]
     payload = {
-        "source": "mediere.anofm.ro",
+        "source": "mediere.anofm.ro, jobrapid.ro",
         "scrapedAt": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "company": COMPANY_NAME,
         "cif": company_cif,
@@ -156,7 +165,8 @@ def main(root=None):
     time.sleep(2)
     final_result = query_solr(COMPANY_CIF)
     print(f"Jobs existing in SOLR before scrape: {existing_count}")
-    print(f"Jobs scraped from ANOFM: {len(transformed['jobs'])}")
+    print(f"Jobs scraped from ANOFM: {len(anofm_jobs)}")
+    print(f"Jobs scraped from jobRapid: {len(jobrapid_jobs)}")
     print(f"Stale jobs attempted: {len(stale_urls)}")
     print(f"Jobs in SOLR after scrape: {final_result['numFound']}")
 

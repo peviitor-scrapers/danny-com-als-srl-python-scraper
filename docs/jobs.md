@@ -9,7 +9,7 @@
 | Career | https://mediere.anofm.ro/app/module/mediere/jobs |
 | LastScraped | 2026-11-15 |
 
-## Jobs (1)
+## Jobs (2)
 
 ### LUCRATOR COMERCIAL
 
@@ -17,5 +17,11 @@
 - **Location**: DOBROESTI
 - **Status**: scraped
 
+### Lucrator Comercial
+
+- **URL**: [https://www.jobrapid.ro/locuri-de-munca/lucrator-comercial-in-pantelimon-1733087.html](https://www.jobrapid.ro/locuri-de-munca/lucrator-comercial-in-pantelimon-1733087.html)
+- **Location**: Pantelimon
+- **Status**: scraped
+
 ---
-_Generated at 2026-11-15T09:03:59Z_
+_Generated at 2026-11-15T09:13:01Z_

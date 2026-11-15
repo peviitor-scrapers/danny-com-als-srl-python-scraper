@@ -5,11 +5,12 @@ Instructions for AI agents working in this repository.
 ## Project
 
 Python scraper that reads job listings for DANNY COM ALS SRL (CIF `3213771`,
-stored as `03213771`) from ANOFM (`https://mediere.anofm.ro`) and publishes
-them to peviitor.ro through the **v1 API** (`https://api.peviitor.ro/v1`).
-The company has no own careers board, so ANOFM is the only job source. It is
-derived from the peviitor Python scraper template and must follow the same API
-contract.
+stored as `03213771`) from ANOFM (`https://mediere.anofm.ro`) and jobRapid
+(`https://www.jobrapid.ro`) and publishes them to peviitor.ro through the
+**v1 API** (`https://api.peviitor.ro/v1`). The company has no own careers
+board, so ANOFM is the primary source and jobRapid is a secondary source. It
+is derived from the peviitor Python scraper template and must follow the same
+API contract.
 
 ## Commandments
 
