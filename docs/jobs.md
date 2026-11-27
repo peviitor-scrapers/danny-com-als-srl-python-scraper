@@ -7,7 +7,7 @@
 | CIF | 03213771 |
 | Brand | Danny Com Als |
 | Career | https://mediere.anofm.ro/app/module/mediere/jobs |
-| LastScraped | 2026-11-26 |
+| LastScraped | 2026-11-27 |
 
 ## Jobs (2)
 
@@ -24,4 +24,4 @@
 - **Status**: scraped
 
 ---
-_Generated at 2026-11-26T15:55:53Z_
+_Generated at 2026-11-27T15:44:06Z_
